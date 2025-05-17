@@ -7,9 +7,7 @@ const viewsRouter = Router();
 // Ruta principal - Home con productos de MongoDB
 viewsRouter.get("/", async (req, res) => {
   try {
-    const products = await Product.find().lean().then(products =>
-      products.map(p => ({ ...p, id: p._id.toString() }))
-    );
+    const products = (await Product.find().lean()).map(p => ({ ...p, id: p._id.toString() }));
     res.render("home", { products });
   } catch (err) {
     console.error("Error cargando productos:", err);
@@ -20,9 +18,7 @@ viewsRouter.get("/", async (req, res) => {
 // Productos en tiempo real (socket)
 viewsRouter.get("/realtimeproducts", async (req, res) => {
   try {
-    const products = await Product.find().lean().then(products =>
-      products.map(p => ({ ...p, id: p._id.toString() }))
-    );
+    const products = (await Product.find().lean()).map(p => ({ ...p, id: p._id.toString() }));
     res.render("realTimeProducts", { products });
   } catch (err) {
     console.error("Error en realtimeproducts:", err);
@@ -37,7 +33,6 @@ viewsRouter.get("/products/:pid", async (req, res) => {
     if (!product) {
       return res.status(404).render("error", { message: "Producto no encontrado" });
     }
-    // Puedes convertir _id a id si quieres, aunque generalmente con un solo objeto no es tan necesario
     product.id = product._id.toString();
     res.render("productDetail", { product });
   } catch (err) {
@@ -56,12 +51,12 @@ viewsRouter.get("/carts/:cid", async (req, res) => {
     if (!cart) {
       return res.status(404).render("error", { message: "Carrito no encontrado" });
     }
-    
-    // Convertir _id a id en carrito y en cada producto dentro del carrito
+
     cart.id = cart._id.toString();
+
     if (cart.products && Array.isArray(cart.products)) {
       cart.products = cart.products.map(item => {
-        if (item.product) {
+        if (item.product?._id) {
           item.product.id = item.product._id.toString();
         }
         return item;
@@ -72,6 +67,28 @@ viewsRouter.get("/carts/:cid", async (req, res) => {
   } catch (err) {
     console.error("Error cargando carrito:", err);
     res.status(500).render("error", { message: "Error interno al cargar carrito" });
+  }
+});
+
+// Redireccionar al carrito único basado en cookie
+viewsRouter.get("/mycart", async (req, res) => {
+  try {
+    let cartId = req.cookies?.cartId;
+
+    if (!cartId) {
+      const newCart = await Cart.create({ products: [] });
+      cartId = newCart._id.toString();
+
+      res.cookie("cartId", cartId, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 semana
+      });
+    }
+
+    res.redirect(`/carts/${cartId}`);
+  } catch (err) {
+    console.error("Error creando o redirigiendo al carrito:", err);
+    res.status(500).render("error", { message: "No se pudo acceder al carrito" });
   }
 });
 
