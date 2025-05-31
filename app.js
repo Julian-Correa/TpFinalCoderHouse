@@ -49,14 +49,15 @@ server.use(async (req, res, next) => {
 });
 
 // Handlebars
-server.engine(
-  "handlebars",
-  engine({
-    helpers: {
-      multiply: (a, b) => a * b,
-    },
-  })
-);
+server.engine("handlebars", engine({
+  helpers: {
+    multiply: (a, b) => a * b,
+    sumTotal: (products) => {
+      return products.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    }
+  }
+}));
+
 server.set("view engine", "handlebars");
 server.set("views", path.join(__dirname, "/proyecto/views"));
 
@@ -114,6 +115,27 @@ server.get("/cart", async (req, res) => {
   }
 });
 
+
+//endpoind para eliminar un producto 
+server.delete("/api/carts/:cid/products/:pid", async (req, res) => {
+  try {
+    const { cid, pid } = req.params;
+    const cart = await Cart.findById(cid);
+    if (!cart) return res.status(404).send("Carrito no encontrado");
+
+    cart.products = cart.products.filter(
+      (p) => p.product.toString() !== pid
+    );
+
+    await cart.save();
+    res.redirect("/cart");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al eliminar producto del carrito");
+  }
+});
+
+
 // Endpoint para eliminar un producto del carrito
 server.post("/api/carts/:cid/products/:pid", methodOverride("_method"), async (req, res) => {
   if (req.method === "DELETE") {
@@ -134,6 +156,23 @@ server.post("/api/carts/:cid/products/:pid", methodOverride("_method"), async (r
     }
   } else {
     res.status(405).send("Método no permitido");
+  }
+});
+
+
+//endpoint para vaciar un carrito 
+server.delete("/api/carts/:cid", async (req, res) => {
+  try {
+    const { cid } = req.params;
+    const cart = await Cart.findById(cid);
+    if (!cart) return res.status(404).send("Carrito no encontrado");
+
+    cart.products = [];
+    await cart.save();
+    res.redirect("/cart");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al vaciar carrito");
   }
 });
 

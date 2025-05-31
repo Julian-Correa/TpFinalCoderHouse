@@ -16,7 +16,7 @@
 
     "mongoose": "^8.14.3",
 
-    "mongoose-paginate-v2": "^1.9.0",
+    "mongoose-paginate-v2": "^1.9.1",
 
     "socket.io": "^4.8.1"
 

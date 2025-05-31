@@ -2,15 +2,62 @@ import { Router } from "express";
 import ProductModel from "../models/product.model.js";
 const router = Router();
 
-// GET /api/products - obtener todos los productos (con filtros opcionales)
+
+
+
 router.get("/", async (req, res) => {
   try {
-    const products = await ProductModel.find();
-    res.json(products);
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      sort,
+      stock
+    } = req.query;
+
+    const query = {};
+    if (category) query.category = category;
+    if (stock === "true") query.stock = { $gt: 0 };
+    if (stock === "false") query.stock = { $lte: 0 };
+
+    const options = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: {}
+    };
+
+    if (sort === "asc") options.sort.price = 1;
+    if (sort === "desc") options.sort.price = -1;
+
+    const result = await ProductModel.paginate(query, options);
+
+    res.json({
+      status: "success",
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage,
+      nextPage: result.nextPage,
+      page: result.page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink: result.hasPrevPage ? `/api/products?page=${result.prevPage}&limit=${limit}` : null,
+      nextLink: result.hasNextPage ? `/api/products?page=${result.nextPage}&limit=${limit}` : null,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener productos" });
+    res.status(500).json({ error: "Error al obtener productos", details: error.message });
   }
 });
+
+
+// GET /api/products - obtener todos los productos (con filtros opcionales)
+// router.get("/", async (req, res) => {
+//   try {
+//     const products = await ProductModel.find();
+//     res.json(products);
+//   } catch (error) {
+//     res.status(500).json({ error: "Error al obtener productos" });
+//   }
+// });
 
 // GET /api/products/:id - obtener un producto por ID
 router.get("/:id", async (req, res) => {
