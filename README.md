@@ -27,6 +27,94 @@ Incluye endpoints para CRUD de productos, operaciones de carrito y consultas con
 
 ## 📦 Instalación y uso
 ### 1) Clonar repo
-```bash
+
 git clone https://github.com/Julian-Correa/TpFinalCoderHouse.git
 cd TpFinalCoderHouse
+
+
+2) Instalar dependencias
+npm install
+
+
+3) Variables de entorno
+
+Crear un archivo .env en la raíz con:
+
+PORT=3000
+MONGO_URL=<<tu_url_mongodb>>
+
+4) Ejecutar
+npm run dev
+---------------------------
+El servidor se iniciará en:
+http://localhost:3000
+
+🔗 Endpoints principales
+Productos
+
+GET /api/products
+
+Soporta:
+
+limit
+
+page
+
+category
+
+status
+
+sort=asc|desc
+
+GET /api/products/:pid
+
+POST /api/products
+
+PUT /api/products/:pid
+
+DELETE /api/products/:pid
+
+Carritos
+
+POST /api/carts
+
+GET /api/carts/:cid
+
+POST /api/carts/:cid/products/:pid
+
+PUT /api/carts/:cid/products/:pid
+
+DELETE /api/carts/:cid/products/:pid
+
+DELETE /api/carts/:cid
+
+🧪 Ejemplo de creación de producto
+{
+  "title": "Producto de ejemplo",
+  "description": "Descripción del producto",
+  "price": 1000,
+  "stock": 10,
+  "category": "general",
+  "status": true
+}
+
+📌 Mejoras futuras
+
+Documentación con Swagger
+
+Tests automatizados
+
+Deploy productivo
+
+Autenticación y autorización (sessions / JWT)
+
+Roles de usuario (admin / user)
+
+👤 Autor
+
+Julián Correa
+Desarrollador Backend Junior
+
+GitHub: https://github.com/Julian-Correa
+
+LinkedIn: https://www.linkedin.com/in/correa-julian/
